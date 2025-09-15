@@ -24,7 +24,7 @@ string getDistrictName(int opt) {
         case 17: return "Phu Nhuan District";
         case 18: return "Binh Tan District";
         case 19: return "Thu Duc City";
-        default: return "Unknown";
+        default: return "No supported";
     }
 }
 
@@ -34,7 +34,7 @@ string getStationName(int type) {
     case 1: return "Bus Station";
     case 2: return "Train Station";
     case 3: return "Metro Station";
-    default: return "Unknown";
+    default: return "No supported";
     }
 }
 
@@ -119,10 +119,10 @@ class Vehicle {
         }
 
         virtual void displayInfo() {
-            cout << "Route: " << route << ", Capacity: " << capacity << ", Status: " << (status ? "on time" : "delayed") << endl;
+            cout << "- Route: " << route << ", Capacity: " << capacity << ", Status: " << (status ? "on time" : "delayed") << endl;
             if (station != nullptr) {
-                cout << "This route assigned to " << station->getName() << " station." << endl; //-> để truy cập thành phần của Station
-            } else cout << " Not assigned to any station." << endl;
+                cout << "- This route assigned to " << station->getName() << " station." << endl; //-> để truy cập thành phần của Station
+            } else cout << "- Not assigned to any station." << endl;
         }
 };
 
@@ -149,10 +149,10 @@ class ExpressBus : public Vehicle {
         }
 
         void displayInfo() override {
-            cout << "Route: " << route << ", Capacity: " << capacity << ", speed: " << speed << ", stops: " << stops << ", Status: " << (status ? "on time" : "delayed") << endl;
+            cout << "- Route: " << route << ", Capacity: " << capacity << ", speed: " << speed << ", stops: " << stops << ", Status: " << (status ? "on time" : "delayed") << endl;
             if (station != nullptr) {
-                cout << "This route assigned to " << station->getName() << " station." << endl; //-> để truy cập thành phần của Station
-            } else cout << " Not assigned to any station." << endl;
+                cout << "- This route assigned to " << station->getName() << " station." << endl; //-> để truy cập thành phần của Station
+            } else cout << "- Not assigned to any station." << endl;
         }
 };
 
@@ -188,48 +188,121 @@ class Passenger {
 };
 
 int main() {
-    // 1. Tạo các Station
-    Station s1("Central Bus Station", 1, 1); // District 1, Bus
-    Station s2("Main Train Station", 3, 2);  // District 3, Train
 
-    // 2. Thêm Schedule cho Station
+    cout << "Our system have some the information about the choosing on location from 1 to 19:" << endl;
+    for (int i=1; i<=19; i+=4) {
+        cout << i << ". " << getDistrictName(i) << "        " << i+1 << ". " << getDistrictName(i+1) << "        " 
+            << i+2 << ". " << getDistrictName(i+2) << "        " << i+3 << ". " << getDistrictName(i+3) << endl;
+    }
+
+    cout << "And the option about the type of station:" << endl << "1. Bus Station           2. Train Station            3. Metro Station" << endl;
+
+    // ====== Tạo dữ liệu mẫu ======
+    Station s1("Central Bus Station", 1, 1);  // District 1, Bus
+    Station s2("Main Train Station", 3, 2);   // District 3, Train
+
     s1.addSchedule(Schedule("08:00", true));   // Arrival
     s1.addSchedule(Schedule("08:30", false));  // Departure
     s2.addSchedule(Schedule("09:00", true));
     s2.addSchedule(Schedule("09:45", false));
 
-    // 3. Tạo Vehicle và ExpressBus
-    Vehicle v1("Route A", 40, true, &s1); // On time, gán vào s1
-    ExpressBus eb1("Express 1", 30, true, 60.0, 5, &s1);
+    Vehicle* v1 = new Vehicle("Route A", 40, true, &s1); // On time, gán vào s1
+    Vehicle* eb1 = new ExpressBus("Express 1", 30, true, 60.0, 5, &s2);
 
-    // 4. Tạo Passenger và book Vehicle
     Passenger p1("Alice", "P001");
-    p1.bookVehicle(&v1);
-    p1.bookVehicle(&eb1);
+    p1.bookVehicle(v1);
+    p1.bookVehicle(eb1);
 
-    // ===== Hiển thị thông tin =====
-    cout << "=== Station Info ===" << endl;
-    s1.displayInfo();
-    cout << endl;
-    s2.displayInfo();
-    cout << endl;
+    // ====== Đưa dữ liệu vào vector ======
+    vector<Station> stations;
+    vector<Vehicle*> vehicles;
+    vector<Passenger> passengers;
 
-    cout << "=== Vehicle Info ===" << endl;
-    v1.displayInfo();
-    cout << endl;
-    eb1.displayInfo();
-    cout << endl;
+    stations.push_back(s1);
+    stations.push_back(s2);
 
-    cout << "=== Passenger Info ===" << endl;
-    p1.displayInfo();
-    cout << endl;
+    vehicles.push_back(v1);
+    vehicles.push_back(eb1);
 
-    // 5. Test travel time
-    double distance = 120; // km
-    cout << "Travel time for v1 (distance " << distance << " km): " 
-         << v1.calculateTravelTime(distance) << " h" << endl;
-    cout << "Travel time for eb1 (distance " << distance << " km): " 
-         << eb1.calculateTravelTime(distance) << " h" << endl;
+    passengers.push_back(p1);
 
+    int choice;
+    do {
+        cout << "Transportation System Menu" << endl;
+        cout << "1. Add Station" << endl;
+        cout << "2. Add Vehicle" << endl;
+        cout << "3. Add Passenger\n";
+        cout << "4. Book Ticket for Passenger\n";
+        cout << "5. Show All Stations\n";
+        cout << "6. Show All Vehicles\n";
+        cout << "7. Show All Passengers\n";
+        cout << "8. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        if (choice == 1) {
+            string name;
+            int location, type;
+            cout << "Station name: ";
+            cin.ignore(); getline(cin, name);
+            cout << "Location: "; cin >> location;
+            cout << "Station type: "; cin >> type;
+            stations.push_back(Station(name, location, type));
+        }
+        else if (choice == 2) {
+            string route;
+            int capacity, type, stop;
+            bool status;
+            double speed;
+            cout << "Route name: "; cin.ignore(); getline(cin, route);
+            cout << "Capacit: "; cin >> capacity;
+            cout << "Status (with 1 is on time and 0 is delayed): "; cin >> status;
+
+            cout << "You have to select station:" << endl;
+            for (int i=0; i<stations.size(); i++) {
+                cout << i << "." << stations[i].getName() <<endl;
+            }
+            int select; cout << "Your selection: "; cin >> select;
+
+            cout << "And select the type of vehicle: " << endl << "1. Normal or 2. Express Bus" << endl;
+            cout << "Your selection: "; cin>>type;
+            if (type == 1) {
+                vehicles.push_back(new Vehicle(route, capacity, status, &stations[select]));
+            } else {
+                cout << "speed: "; cin >> speed;
+                cout << "stops: "; cin >> stop;
+                vehicles.push_back(new ExpressBus(route, capacity, status, speed, stop, &stations[select]));
+            }
+        }
+        else if (choice == 3) {
+            string name, ID;
+            cout << "Passenger name: "; cin.ignore(); getline(cin, name);
+            cout << "Passenger ID: "; cin.ignore(); getline(cin, ID);
+            passengers.push_back(Passenger(name, ID));
+        }
+        else if (choice == 4) {
+            string ID;
+            cout << "Passenger ID: "; cin.ignore(); cin >> ID;
+            cout << "Choose vehicle:\n";
+            for (int i=0;i<vehicles.size();i++) 
+                cout << i << ". " << vehicles[i]->getRoute() << endl;
+            int vi; cin >> vi;
+
+            for (Passenger &p : passengers) {
+                if (p.getID()==ID) {
+                    p.bookVehicle(vehicles[vi]);
+                }
+            }
+        }
+        else if (choice == 5) {
+            for (Station &s : stations) s.displayInfo();
+        }
+        else if (choice == 6) {
+            for (Vehicle* v : vehicles) v->displayInfo();
+        }
+        else if (choice == 7) {
+            for (Passenger &p : passengers) p.displayInfo();
+        }
+    } while (choice != 8);
     return 0;
 }
