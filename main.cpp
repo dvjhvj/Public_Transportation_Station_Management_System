@@ -277,7 +277,7 @@ int main() {
         else if (choice == 3) {
             string name, ID;
             cout << "Passenger name: "; cin.ignore(); getline(cin, name);
-            cout << "Passenger ID: "; cin.ignore(); getline(cin, ID);
+            cout << "Passenger ID: "; getline(cin, ID);
             passengers.push_back(Passenger(name, ID));
         }
         else if (choice == 4) {
@@ -304,5 +304,11 @@ int main() {
             for (Passenger &p : passengers) p.displayInfo();
         }
     } while (choice != 8);
+
+    // Giải phóng bộ nhớ động đã cấp phát cho vehicles
+    for (Vehicle* v : vehicles) {
+        delete v;
+    }
+    
     return 0;
 }
